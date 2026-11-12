@@ -1,0 +1,142 @@
+<!doctype html><html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Wittio survey script</title>
+<style>body{font-family:Arial,sans-serif;margin:0;padding:16px;background:#fff;color:#2b303b}
+button{font-size:18px;font-weight:700;padding:14px 22px;border:0;border-radius:10px;background:#e8573e;color:#fff;cursor:pointer}
+#ok{margin-left:12px;font-weight:700;color:#2e8b57}
+textarea{width:100%;height:70vh;margin-top:14px;font-family:Menlo,monospace;font-size:12px;box-sizing:border-box}</style></head><body>
+<h2 style="margin:0 0 10px">Скрипт для Google Forms</h2>
+<button id="b">Скопіювати весь код</button><span id="ok"></span>
+<textarea id="t" readonly>/**
+ * Wittio mini-test survey (CC-196)
+ * How to use:
+ *   1. Open https://script.google.com and click &quot;New project&quot;.
+ *   2. Delete everything in the editor and paste this whole file.
+ *   3. Choose LANG below: &#x27;uk&#x27; for Ukrainian, &#x27;en&#x27; for English.
+ *   4. Click Run (▶) with the function createWittioSurvey selected.
+ *   5. Allow access when Google asks (it needs to create a Form and a Sheet in your Drive).
+ *   6. Open &quot;Execution log&quot;: it prints the link for respondents, the edit link and the results sheet.
+ */
+const LANG = &#x27;uk&#x27;;
+
+const IMG = &#x27;https://raw.githubusercontent.com/grishchukvalentine-hash/wittio-model/main/img/&#x27;;
+
+const T = {
+  uk: {
+    title: &#x27;Короткий тест застосунку (3 хвилини)&#x27;,
+    desc: &#x27;Анонімне опитування для студентського кейс-чемпіонату. Подивись кілька екранів застосунку і відповідай чесно: правильних відповідей немає. Email і імена ми не збираємо.&#x27;,
+    s1: &#x27;Уяви ситуацію&#x27;,
+    s1help: &#x27;Ти пройшов онлайн-тест IQ за $1 і отримав такий результат.&#x27;,
+    qA: &#x27;Через тиждень з тебе автоматично спишуть $35 за місяць користування. Ти б залишився?&#x27;,
+    yes4: [&#x27;Так&#x27;, &#x27;Скоріше так&#x27;, &#x27;Скоріше ні&#x27;, &#x27;Ні&#x27;],
+    s2: &#x27;Тепер уяви, що застосунок виглядає так&#x27;,
+    s2help: &#x27;Три екрани, які ти бачив би протягом місяця. Просто подивись на них.&#x27;,
+    img1: &#x27;Після кожної гри&#x27;, img2: &#x27;Раз на місяць&#x27;, img3: &#x27;Після щомісячної перевірки&#x27;,
+    s3: &#x27;Твої відповіді&#x27;,
+    q1: &#x27;Якби застосунок виглядав так, чи повернувся б ти через місяць, щоб побачити, як змінився твій результат?&#x27;,
+    q2: &#x27;Чи заплатив би ти $35 за наступний місяць?&#x27;,
+    q2c: [&#x27;Так&#x27;, &#x27;Ні&#x27;], q2other: &#x27;Так, але менше (вкажи суму в полі «Інше»)&#x27;,
+    q3: &#x27;Який екран тобі найбільше хотілося б побачити ще раз?&#x27;,
+    q3c: [&#x27;Екран 1: результат після гри&#x27;, &#x27;Екран 2: як я змінився за місяць&#x27;, &#x27;Екран 3: нова ціль&#x27;, &#x27;Жоден&#x27;],
+    q4: &#x27;Обрав би ти план на 12 тижнів за $70 замість $35 щомісяця?&#x27;,
+    yn: [&#x27;Так&#x27;, &#x27;Ні&#x27;],
+    q5: &#x27;Що найбільше зупинило б тебе від того, щоб залишитися?&#x27;,
+    s4: &#x27;Кілька слів про тебе&#x27;,
+    age: &#x27;Вік&#x27;, ages: [&#x27;до 20&#x27;, &#x27;20–30&#x27;, &#x27;30–45&#x27;, &#x27;45+&#x27;],
+    exp: &#x27;Ти колись проходив IQ-тести онлайн або користувався застосунками для тренування мозку?&#x27;,
+    jp: &#x27;Ти живеш або жив у Японії?&#x27;,
+    thanks: &#x27;Дякуємо! Ти дуже допоміг нашій команді.&#x27;,
+    sheet: &#x27;Wittio мінітест: відповіді&#x27;,
+  },
+  en: {
+    title: &#x27;Quick app test (3 minutes)&#x27;,
+    desc: &#x27;Anonymous survey for a student case competition. Look at a few app screens and answer honestly: there are no right answers. We do not collect emails or names.&#x27;,
+    s1: &#x27;Imagine this&#x27;,
+    s1help: &#x27;You took an online IQ test for $1 and got this result.&#x27;,
+    qA: &#x27;In a week you will be charged $35 for a month of use. Would you stay?&#x27;,
+    yes4: [&#x27;Yes&#x27;, &#x27;Probably yes&#x27;, &#x27;Probably not&#x27;, &#x27;No&#x27;],
+    s2: &#x27;Now imagine the app looks like this&#x27;,
+    s2help: &#x27;Three screens you would see during the month. Just look at them.&#x27;,
+    img1: &#x27;After each game&#x27;, img2: &#x27;Once a month&#x27;, img3: &#x27;After the monthly check-in&#x27;,
+    s3: &#x27;Your answers&#x27;,
+    q1: &#x27;If the app looked like this, would you come back after a month to see how your result changed?&#x27;,
+    q2: &#x27;Would you pay $35 for the next month?&#x27;,
+    q2c: [&#x27;Yes&#x27;, &#x27;No&#x27;], q2other: &#x27;Yes, but less (write the amount under &quot;Other&quot;)&#x27;,
+    q3: &#x27;Which screen would you most like to see again?&#x27;,
+    q3c: [&#x27;Screen 1: result after a game&#x27;, &#x27;Screen 2: how I changed this month&#x27;, &#x27;Screen 3: new goal&#x27;, &#x27;None&#x27;],
+    q4: &#x27;Would you choose a 12-week plan for $70 instead of $35 every month?&#x27;,
+    yn: [&#x27;Yes&#x27;, &#x27;No&#x27;],
+    q5: &#x27;What would most likely stop you from staying?&#x27;,
+    s4: &#x27;A little about you&#x27;,
+    age: &#x27;Age&#x27;, ages: [&#x27;under 20&#x27;, &#x27;20–30&#x27;, &#x27;30–45&#x27;, &#x27;45+&#x27;],
+    exp: &#x27;Have you ever taken online IQ tests or used brain-training apps?&#x27;,
+    jp: &#x27;Do you live or have you lived in Japan?&#x27;,
+    thanks: &#x27;Thank you! You really helped our team.&#x27;,
+    sheet: &#x27;Wittio mini-test: responses&#x27;,
+  },
+};
+
+function img_(form, file, title) {
+  const blob = UrlFetchApp.fetch(IMG + file).getBlob();
+  form.addImageItem().setImage(blob).setTitle(title).setAlignment(FormApp.Alignment.CENTER).setWidth(300);
+}
+
+function choice_(form, title, values, required) {
+  return form.addMultipleChoiceItem().setTitle(title).setChoiceValues(values).setRequired(required !== false);
+}
+
+function createWittioSurvey() {
+  const t = T[LANG];
+  const form = FormApp.create(t.title);
+  form.setDescription(t.desc)
+      .setCollectEmail(false)
+      .setLimitOneResponsePerUser(false)
+      .setAllowResponseEdits(false)
+      .setShowLinkToRespondAgain(false)
+      .setProgressBar(true)
+      .setConfirmationMessage(t.thanks);
+  try { form.setRequireLogin(false); } catch (e) {}
+
+  // Section 1: current product
+  form.addSectionHeaderItem().setTitle(t.s1).setHelpText(t.s1help);
+  img_(form, &#x27;profile.jpg&#x27;, &#x27;&#x27;);
+  choice_(form, t.qA, t.yes4);
+
+  // Section 2: new screens
+  form.addPageBreakItem().setTitle(t.s2).setHelpText(t.s2help);
+  img_(form, &#x27;mk_s1.png&#x27;, &#x27;1. &#x27; + t.img1);
+  img_(form, &#x27;mk_s2.png&#x27;, &#x27;2. &#x27; + t.img2);
+  img_(form, &#x27;mk_s3.png&#x27;, &#x27;3. &#x27; + t.img3);
+
+  // Section 3: questions
+  form.addPageBreakItem().setTitle(t.s3);
+  choice_(form, t.q1, t.yes4);
+  const q2 = form.addMultipleChoiceItem().setTitle(t.q2).setRequired(true);
+  q2.setChoices(t.q2c.map(v =&gt; q2.createChoice(v))).showOtherOption(true).setHelpText(t.q2other);
+  choice_(form, t.q3, t.q3c);
+  choice_(form, t.q4, t.yn);
+  form.addParagraphTextItem().setTitle(t.q5).setRequired(false);
+
+  // Section 4: about you
+  form.addPageBreakItem().setTitle(t.s4);
+  choice_(form, t.age, t.ages);
+  choice_(form, t.exp, t.yn);
+  choice_(form, t.jp, t.yn);
+
+  // Results sheet
+  const ss = SpreadsheetApp.create(t.sheet);
+  form.setDestination(FormApp.DestinationType.SPREADSHEET, ss.getId());
+
+  form.setAcceptingResponses(true);
+  try { form.setPublished(true); } catch (e) {}
+
+  Logger.log(&#x27;LINK FOR RESPONDENTS: &#x27; + form.getPublishedUrl());
+  try { Logger.log(&#x27;SHORT LINK: &#x27; + form.shortenFormUrl(form.getPublishedUrl())); } catch (e) {}
+  Logger.log(&#x27;EDIT THE FORM: &#x27; + form.getEditUrl());
+  Logger.log(&#x27;RESULTS SHEET: &#x27; + ss.getUrl());
+}
+</textarea>
+<script>
+document.getElementById('b').onclick=async()=>{const t=document.getElementById('t');
+try{await navigator.clipboard.writeText(t.value);document.getElementById('ok').textContent='Скопійовано!';}
+catch(e){t.focus();t.select();document.execCommand('copy');document.getElementById('ok').textContent='Скопійовано (або натисни Cmd+C)';}};
+</script></body></html>

@@ -1,0 +1,128 @@
+/**
+ * Wittio mini-test survey (CC-196)
+ * How to use:
+ *   1. Open https://script.google.com and click "New project".
+ *   2. Delete everything in the editor and paste this whole file.
+ *   3. Choose LANG below: 'uk' for Ukrainian, 'en' for English.
+ *   4. Click Run (▶) with the function createWittioSurvey selected.
+ *   5. Allow access when Google asks (it needs to create a Form and a Sheet in your Drive).
+ *   6. Open "Execution log": it prints the link for respondents, the edit link and the results sheet.
+ */
+const LANG = 'uk';
+
+const IMG = 'https://raw.githubusercontent.com/grishchukvalentine-hash/wittio-model/main/img/';
+
+const T = {
+  uk: {
+    title: 'Короткий тест застосунку (3 хвилини)',
+    desc: 'Анонімне опитування для студентського кейс-чемпіонату. Подивись кілька екранів застосунку і відповідай чесно: правильних відповідей немає. Email і імена ми не збираємо.',
+    s1: 'Уяви ситуацію',
+    s1help: 'Ти пройшов онлайн-тест IQ за $1 і отримав такий результат.',
+    qA: 'Через тиждень з тебе автоматично спишуть $35 за місяць користування. Ти б залишився?',
+    yes4: ['Так', 'Скоріше так', 'Скоріше ні', 'Ні'],
+    s2: 'Тепер уяви, що застосунок виглядає так',
+    s2help: 'Три екрани, які ти бачив би протягом місяця. Просто подивись на них.',
+    img1: 'Після кожної гри', img2: 'Раз на місяць', img3: 'Після щомісячної перевірки',
+    s3: 'Твої відповіді',
+    q1: 'Якби застосунок виглядав так, чи повернувся б ти через місяць, щоб побачити, як змінився твій результат?',
+    q2: 'Чи заплатив би ти $35 за наступний місяць?',
+    q2c: ['Так', 'Ні'], q2other: 'Так, але менше (вкажи суму в полі «Інше»)',
+    q3: 'Який екран тобі найбільше хотілося б побачити ще раз?',
+    q3c: ['Екран 1: результат після гри', 'Екран 2: як я змінився за місяць', 'Екран 3: нова ціль', 'Жоден'],
+    q4: 'Обрав би ти план на 12 тижнів за $70 замість $35 щомісяця?',
+    yn: ['Так', 'Ні'],
+    q5: 'Що найбільше зупинило б тебе від того, щоб залишитися?',
+    s4: 'Кілька слів про тебе',
+    age: 'Вік', ages: ['до 20', '20–30', '30–45', '45+'],
+    exp: 'Ти колись проходив IQ-тести онлайн або користувався застосунками для тренування мозку?',
+    jp: 'Ти живеш або жив у Японії?',
+    thanks: 'Дякуємо! Ти дуже допоміг нашій команді.',
+    sheet: 'Wittio мінітест: відповіді',
+  },
+  en: {
+    title: 'Quick app test (3 minutes)',
+    desc: 'Anonymous survey for a student case competition. Look at a few app screens and answer honestly: there are no right answers. We do not collect emails or names.',
+    s1: 'Imagine this',
+    s1help: 'You took an online IQ test for $1 and got this result.',
+    qA: 'In a week you will be charged $35 for a month of use. Would you stay?',
+    yes4: ['Yes', 'Probably yes', 'Probably not', 'No'],
+    s2: 'Now imagine the app looks like this',
+    s2help: 'Three screens you would see during the month. Just look at them.',
+    img1: 'After each game', img2: 'Once a month', img3: 'After the monthly check-in',
+    s3: 'Your answers',
+    q1: 'If the app looked like this, would you come back after a month to see how your result changed?',
+    q2: 'Would you pay $35 for the next month?',
+    q2c: ['Yes', 'No'], q2other: 'Yes, but less (write the amount under "Other")',
+    q3: 'Which screen would you most like to see again?',
+    q3c: ['Screen 1: result after a game', 'Screen 2: how I changed this month', 'Screen 3: new goal', 'None'],
+    q4: 'Would you choose a 12-week plan for $70 instead of $35 every month?',
+    yn: ['Yes', 'No'],
+    q5: 'What would most likely stop you from staying?',
+    s4: 'A little about you',
+    age: 'Age', ages: ['under 20', '20–30', '30–45', '45+'],
+    exp: 'Have you ever taken online IQ tests or used brain-training apps?',
+    jp: 'Do you live or have you lived in Japan?',
+    thanks: 'Thank you! You really helped our team.',
+    sheet: 'Wittio mini-test: responses',
+  },
+};
+
+function img_(form, file, title) {
+  const blob = UrlFetchApp.fetch(IMG + file).getBlob();
+  form.addImageItem().setImage(blob).setTitle(title).setAlignment(FormApp.Alignment.CENTER).setWidth(300);
+}
+
+function choice_(form, title, values, required) {
+  return form.addMultipleChoiceItem().setTitle(title).setChoiceValues(values).setRequired(required !== false);
+}
+
+function createWittioSurvey() {
+  const t = T[LANG];
+  const form = FormApp.create(t.title);
+  form.setDescription(t.desc)
+      .setCollectEmail(false)
+      .setLimitOneResponsePerUser(false)
+      .setAllowResponseEdits(false)
+      .setShowLinkToRespondAgain(false)
+      .setProgressBar(true)
+      .setConfirmationMessage(t.thanks);
+  try { form.setRequireLogin(false); } catch (e) {}
+
+  // Section 1: current product
+  form.addSectionHeaderItem().setTitle(t.s1).setHelpText(t.s1help);
+  img_(form, 'profile.jpg', '');
+  choice_(form, t.qA, t.yes4);
+
+  // Section 2: new screens
+  form.addPageBreakItem().setTitle(t.s2).setHelpText(t.s2help);
+  img_(form, 'mk_s1.png', '1. ' + t.img1);
+  img_(form, 'mk_s2.png', '2. ' + t.img2);
+  img_(form, 'mk_s3.png', '3. ' + t.img3);
+
+  // Section 3: questions
+  form.addPageBreakItem().setTitle(t.s3);
+  choice_(form, t.q1, t.yes4);
+  const q2 = form.addMultipleChoiceItem().setTitle(t.q2).setRequired(true);
+  q2.setChoices(t.q2c.map(v => q2.createChoice(v))).showOtherOption(true).setHelpText(t.q2other);
+  choice_(form, t.q3, t.q3c);
+  choice_(form, t.q4, t.yn);
+  form.addParagraphTextItem().setTitle(t.q5).setRequired(false);
+
+  // Section 4: about you
+  form.addPageBreakItem().setTitle(t.s4);
+  choice_(form, t.age, t.ages);
+  choice_(form, t.exp, t.yn);
+  choice_(form, t.jp, t.yn);
+
+  // Results sheet
+  const ss = SpreadsheetApp.create(t.sheet);
+  form.setDestination(FormApp.DestinationType.SPREADSHEET, ss.getId());
+
+  form.setAcceptingResponses(true);
+  try { form.setPublished(true); } catch (e) {}
+
+  Logger.log('LINK FOR RESPONDENTS: ' + form.getPublishedUrl());
+  try { Logger.log('SHORT LINK: ' + form.shortenFormUrl(form.getPublishedUrl())); } catch (e) {}
+  Logger.log('EDIT THE FORM: ' + form.getEditUrl());
+  Logger.log('RESULTS SHEET: ' + ss.getUrl());
+}
