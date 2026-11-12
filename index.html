@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{color-scheme:light}body{margin:0;font-size:14px}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Wittio Track A Model</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&display=swap">
+<style>
+/* Layout: control column left, results right; one-screen tool, stacks on phones */
+:root{
+  --bg:#ffffff; --panel:#f3f4f6; --line:#d9dce1; --fg:#2b303b; --muted:#6b7280;
+  --accent:#e8573e; --accent-soft:#fbe4de; --good:#2e8b57; --bad:#c0392b; --s1:#c4c8cf; --s2:#f0a594; --s3:#e8573e;
+  --display:"Lato","Helvetica Neue",Arial,sans-serif; --body:"Lato","Helvetica Neue",Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#171a20; --panel:#22262e; --line:#363b45; --fg:#e8eaee; --muted:#9aa1ad;
+  --accent:#ff7a61; --accent-soft:#3a2420; --good:#4cc283; --bad:#ff6b5b; --s1:#5b616c; --s2:#c0705f; --s3:#ff7a61; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#171a20; --panel:#22262e; --line:#363b45; --fg:#e8eaee; --muted:#9aa1ad;
+  --accent:#ff7a61; --accent-soft:#3a2420; --good:#4cc283; --bad:#ff6b5b; --s1:#5b616c; --s2:#c0705f; --s3:#ff7a61; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.45}
+.wrap{max-width:1180px;margin:0 auto;padding-block:28px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:22px}
+h1{font-family:var(--display);font-weight:300;font-size:30px;margin:0;text-wrap:balance}
+h1 b{font-weight:900;color:var(--accent)}
+.sub{color:var(--muted);margin-top:4px}
+.presets{display:flex;flex-wrap:wrap;gap:8px}
+.presets button{font:inherit;font-weight:700;padding:8px 14px;border-radius:6px;border:1px solid var(--line);background:var(--bg);color:var(--fg);cursor:pointer}
+.presets button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.presets button:focus-visible,input:focus-visible,label.tg:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+.grid{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:24px}
+@media (max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}.results{order:-1}}
+.controls{background:var(--panel);border-radius:8px;padding:18px;display:flex;flex-direction:column;gap:14px;align-self:start}
+.cap{font-family:var(--display);font-weight:900;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.ctl label{display:flex;justify-content:space-between;gap:8px;font-weight:700;font-size:14px}
+.ctl output{font-variant-numeric:tabular-nums;color:var(--accent);font-weight:900}
+.ctl .hint{font-size:12px;color:var(--muted)}
+input[type=range]{width:100%;accent-color:var(--accent)}
+label.tg{display:flex;gap:10px;align-items:flex-start;font-size:14px;cursor:pointer}
+label.tg input{margin-top:3px;accent-color:var(--accent)}
+.results{display:flex;flex-direction:column;gap:20px;min-width:0}
+.tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+@media (max-width:640px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.tile{border:1px solid var(--line);border-radius:8px;padding:14px}
+.tile .v{font-family:var(--display);font-weight:300;font-size:32px;font-variant-numeric:tabular-nums;line-height:1.1}
+.tile .l{font-size:13px;color:var(--muted)}
+.tile.hero{background:var(--accent-soft);border-color:transparent}
+.tile.hero .v{font-weight:900}
+.pos{color:var(--good)}.neg{color:var(--bad)}
+.gates{display:flex;flex-wrap:wrap;gap:8px}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;font-size:13px;font-weight:700;border:1px solid var(--line)}
+.pill.ok{border-color:var(--good);color:var(--good)}.pill.no{border-color:var(--bad);color:var(--bad)}
+.card{border:1px solid var(--line);border-radius:8px;padding:16px;min-width:0}
+.card h2{font-size:15px;margin:0 0 10px;font-weight:900}
+.chart{width:100%;overflow-x:auto}
+svg text{fill:var(--muted);font-family:var(--body);font-size:12px}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;font-size:14px}
+th,td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:right}
+th:first-child,td:first-child{text-align:left}
+th{color:var(--muted);font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+.two{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:20px}
+@media (max-width:860px){.two{grid-template-columns:minmax(0,1fr)}}
+.foot{font-size:12px;color:var(--muted);margin-top:8px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head><body>
+
+<div class="wrap">
+<header>
+  <div>
+    <h1>Wittio <b>Track A</b> model</h1>
+    <div class="sub">Team CC-196. Move a slider and every number below is recalculated against “do nothing”.</div>
+  </div>
+  <div class="presets" role="group" aria-label="Scenario presets">
+    <button type="button" data-p="today" title="All spending, no effect, no T1">Zero effect</button>
+    <button type="button" data-p="stress">Stress</button>
+    <button type="button" data-p="base" aria-pressed="true">Base</button>
+    <button type="button" data-p="upside">Upside</button>
+  </div>
+</header>
+
+<div class="grid">
+  <section class="controls" aria-label="Assumptions">
+    <div class="cap">Product effect (from M6)</div>
+    <div class="ctl"><label for="c1">First charge <output id="c1o"></output></label><input id="c1" type="range" min="35" max="55" step="0.5"><div class="hint">today 38%, market median 39.9%</div></div>
+    <div class="ctl"><label for="tail">Monthly retention after charge 6 <output id="tailo"></output></label><input id="tail" type="range" min="70" max="90" step="0.5"><div class="hint">today 75%</div></div>
+    <div class="ctl"><label for="refund">Refunds <output id="refundo"></output></label><input id="refund" type="range" min="4" max="12" step="0.5"><div class="hint">today 10%, market 4.71%</div></div>
+    <div class="ctl"><label for="plan12">First payers on 12-week plan ($70) <output id="plan12o"></output></label><input id="plan12" type="range" min="0" max="45" step="1"></div>
+    <div class="ctl"><label for="renew">12-week plan renewal <output id="renewo"></output></label><input id="renew" type="range" min="30" max="70" step="1"></div>
+    <div class="ctl"><label for="extra">Paid report, $ per trial <output id="extrao"></output></label><input id="extra" type="range" min="0" max="3" step="0.1"></div>
+    <div class="cap">Funnel and market</div>
+    <div class="ctl"><label for="tm">Trials kept after funnel clean-up <output id="tmo"></output></label><input id="tm" type="range" min="75" max="100" step="1"></div>
+    <div class="ctl"><label for="cacup">Google CAC shock <output id="cacupo"></output></label><input id="cacup" type="range" min="0" max="40" step="1"><div class="hint">applied to both the plan and “do nothing”</div></div>
+    <div class="cap">Plan and valuation</div>
+    <label class="tg"><input id="scale" type="checkbox"> <span>Scale ads +$1.3m in M12–M23 (only if LTV/CAC ≥ 1.4, trigger T2)</span></label>
+    <label class="tg"><input id="t1" type="checkbox"> <span>T1 fires: stop product spend after Q2, $0.6m Track B test</span></label>
+    <div class="ctl"><label for="mult">Multiple on yearly contribution <output id="multo"></output></label><input id="mult" type="range" min="2" max="8" step="0.5"></div>
+  </section>
+
+  <section class="results" aria-live="polite">
+    <div class="tiles">
+      <div class="tile hero"><div class="v" id="net"></div><div class="l">Net value vs doing nothing</div></div>
+      <div class="tile"><div class="v" id="ratio"></div><div class="l">LTV/CAC after refunds</div></div>
+      <div class="tile"><div class="v" id="margin"></div><div class="l">Margin per trial, 12 months</div></div>
+      <div class="tile"><div class="v" id="cash"></div><div class="l">Cash vs doing nothing at Q8</div></div>
+    </div>
+    <div class="gates" id="gates"></div>
+    <div class="two">
+      <div class="card"><h2>Cumulative cash vs doing nothing, $m</h2><div class="chart" id="chart"></div></div>
+      <div class="card"><h2>Where the value comes from</h2>
+        <table><tbody id="tbl"></tbody></table>
+        <div class="foot">Net value = Δ contribution over 24 months + (Δ yearly contribution after M24 − opex) × multiple − non-ad investment.</div>
+      </div>
+    </div>
+    <div class="card"><h2>Per trial buyer, first 12 months</h2><table><thead><tr><th></th><th>Do nothing</th><th>This plan</th></tr></thead><tbody id="unit"></tbody></table>
+      <div class="foot">Case data: $300k ads a month, 9,000 paid trials, $35 every 4 weeks (modelled monthly), refunds 10%. Team assumptions: 5% payment and variable costs, $0.5m opex a year after M24, extra CAC +15% when scaling, effect at 0% before M3 and 50% in M3–M5. All figures are illustrative.</div>
+    </div>
+  </section>
+</div>
+</div>
+
+<script>
+(function(){
+const SPEND=300000, PRICE=35, PLAN12=70, TRIAL=1, REF=0.10, VAR=0.05, CAC0=SPEND/9000;
+const BASE_R=[.38,.22,.14,.10,.08,.06];
+const SQ={c1:.38,tail:.75,refund:.10,extra:0,plan12:0,renew12:.5,trial_mult:1,cac_up:0,scale:false,inc_cac:.15};
+const PRE={
+  today:{c1:.38,tail:.75,refund:.10,extra:0,plan12:0,renew12:.5,trial_mult:1,cac_up:0,scale:false,t1:false,mult:5},
+  stress:{c1:.41,tail:.77,refund:.08,extra:.5,plan12:.15,renew12:.40,trial_mult:.90,cac_up:0,scale:false,t1:true,mult:5},
+  base:{c1:.45,tail:.80,refund:.07,extra:1.5,plan12:.25,renew12:.50,trial_mult:.95,cac_up:0,scale:true,t1:false,mult:5},
+  upside:{c1:.52,tail:.85,refund:.06,extra:2.5,plan12:.35,renew12:.60,trial_mult:.97,cac_up:0,scale:true,t1:false,mult:5}
+};
+function curve(c1,tail,n){n=n||48;const k=c1/.38;const r=BASE_R.map(x=>x*k);while(r.length<n)r.push(r[r.length-1]*tail);return r.slice(0,n);}
+function cohort(p,ramp){
+  const c1=.38+(p.c1-.38)*ramp, tail=.75+(p.tail-.75)*ramp, refund=REF+(p.refund-REF)*ramp, s=p.plan12*ramp, extra=p.extra*ramp;
+  const r=curve(c1,tail), out=new Array(50).fill(0);
+  out[0]=TRIAL+extra; r.forEach((x,j)=>{out[j+1]+=PRICE*x*(1-s);});
+  let payers=c1*s, m=1, q=1; while(m<49){out[m]+=PLAN12*payers*q; q*=p.renew12; m+=3;}
+  return out.map(v=>v*(1-refund));
+}
+function ltv(p){return cohort(p,1).slice(0,13).reduce((a,b)=>a+b,0);}
+function sim(p){
+  const H=24,T=60, rev=new Array(H+T+60).fill(0), ads=new Array(H+T).fill(0);
+  const streams=[0,0.5,1].map(r=>cohort(p,r));
+  for(let m=0;m<H+T;m++){
+    const ri=m<3?0:(m<6?1:2);
+    const cac=CAC0*(1+p.cac_up);
+    const tm=m>=3?p.trial_mult:1;
+    const xs=p.scale?((m>=12&&m<24)||m>=24?1.3e6/12:0):0;
+    const tr=(SPEND/cac + xs/(cac*(1+p.inc_cac)))*tm;
+    const st=streams[ri]; for(let j=0;j<st.length;j++) rev[m+j]+=tr*st[j];
+    ads[m]=SPEND+xs;
+  }
+  return {rev,ads};
+}
+function run(p){
+  const {rev,ads}=sim(p); const sum=(a,i,j)=>a.slice(i,j).reduce((x,y)=>x+y,0);
+  const q=[]; for(let k=0;k<8;k++) q.push(sum(rev,k*3,k*3+3)*(1-VAR)-sum(ads,k*3,k*3+3));
+  return {c24:sum(rev,0,24)*(1-VAR)-sum(ads,0,24), css:sum(rev,36,48)*(1-VAR)-sum(ads,36,48), q};
+}
+const INV=[0.6,0.8,0.8,0.8,0.475,0.475,0.375,0.375].map(x=>x*1e6);
+const INV_T1=[0.6,0.8,0.6,0,0,0,0,0].map(x=>x*1e6);
+const ids=['c1','tail','refund','plan12','renew','extra','tm','cacup','mult'];
+const el=Object.fromEntries(ids.concat(['scale','t1']).map(i=>[i,document.getElementById(i)]));
+function setPreset(n){const p=PRE[n];
+  el.c1.value=p.c1*100; el.tail.value=p.tail*100; el.refund.value=p.refund*100; el.plan12.value=Math.round(p.plan12*100); el.renew.value=Math.round(p.renew12*100);
+  el.extra.value=p.extra; el.tm.value=Math.round(p.trial_mult*100); el.cacup.value=p.cac_up*100; el.scale.checked=p.scale; el.t1.checked=p.t1; el.mult.value=p.mult;
+  document.querySelectorAll('.presets button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.p===n?'true':'false'));
+  calc();
+}
+const f1=x=>(x>=0?'+':'−')+'$'+Math.abs(x/1e6).toFixed(1)+'m';
+const f2=x=>(x>=0?'+':'−')+'$'+Math.abs(x/1e6).toFixed(2)+'m';
+function calc(){
+  const v=id=>parseFloat(el[id].value);
+  const p={c1:v('c1')/100,tail:v('tail')/100,refund:v('refund')/100,plan12:v('plan12')/100,renew12:v('renew')/100,extra:v('extra'),trial_mult:v('tm')/100,cac_up:v('cacup')/100,inc_cac:.15};
+  const t1=el.t1.checked, mult=v('mult');
+  const cac=CAC0*(1+p.cac_up), L=ltv(p), ratio=L/cac;
+  p.scale=el.scale.checked && !t1;
+  const sq=run(Object.assign({},SQ,{cac_up:p.cac_up})), pl=run(p);
+  const d24=pl.c24-sq.c24, drr=pl.css-sq.css, inv=t1?2.0e6:4.7e6, opex=t1?0:0.5e6;
+  const net=d24+(drr-opex)*mult-inv;
+  const invq=t1?INV_T1:INV; let cum=0; const cash=[0]; for(let k=0;k<8;k++){cum+=(pl.q[k]-sq.q[k])-invq[k]; cash.push(cum);}
+  // outputs
+  document.getElementById('c1o').textContent=v('c1').toFixed(1)+'%';
+  document.getElementById('tailo').textContent=v('tail').toFixed(1)+'%';
+  document.getElementById('refundo').textContent=v('refund').toFixed(1)+'%';
+  document.getElementById('plan12o').textContent=v('plan12')+'%';
+  document.getElementById('renewo').textContent=v('renew')+'%';
+  document.getElementById('extrao').textContent='$'+v('extra').toFixed(1);
+  document.getElementById('tmo').textContent=v('tm')+'%';
+  document.getElementById('cacupo').textContent='+'+v('cacup')+'%';
+  document.getElementById('multo').textContent=mult.toFixed(1)+'×';
+  const set=(id,t,cls)=>{const e=document.getElementById(id);e.textContent=t;e.className='v'+(cls?' '+cls:'');};
+  set('net',f1(net),net>=0?'pos':'neg');
+  set('ratio',ratio.toFixed(2),ratio>=1.4?'pos':(ratio<1?'neg':''));
+  const mg=L*(1-VAR)-cac; set('margin',(mg>=0?'+':'−')+'$'+Math.abs(mg).toFixed(1),mg>=0?'pos':'neg');
+  set('cash',f1(cum),cum>=0?'pos':'neg');
+  const g=[[p.c1>=.42,'T1 first charge ≥ 42%'],[ratio>=1.4,'T2 LTV/CAC ≥ 1.4: scaling allowed'],[p.refund<=.10,'T4 refunds ≤ 10%'],[p.trial_mult>=.90,'T6 trial loss ≤ 10%']];
+  document.getElementById('gates').innerHTML=g.map(([ok,t])=>'<span class="pill '+(ok?'ok':'no')+'">'+(ok?'✓ ':'✕ ')+t+'</span>').join('')+(el.scale.checked&&ratio<1.4&&!t1?'<span class="pill no">Scaling is on but T2 is not met</span>':'');
+  document.getElementById('tbl').innerHTML=[
+    ['Δ contribution, 24 months',f2(d24)],['Δ contribution a year after M24',f2(drr)],['Opex after M24, a year',f2(-opex)],['× multiple',mult.toFixed(1)+'×'],['Non-ad investment',f2(-inv)],['<b>Net value</b>','<b>'+f1(net)+'</b>']
+  ].map(r=>'<tr><td>'+r[0]+'</td><td>'+r[1]+'</td></tr>').join('');
+  const Ls=ltv(SQ), cs=CAC0*(1+p.cac_up);
+  const rowsU=[['First charge','38%',(p.c1*100).toFixed(1)+'%'],['LTV after refunds','$'+Ls.toFixed(1),'$'+L.toFixed(1)],['CAC','$'+cs.toFixed(1),'$'+cac.toFixed(1)],['LTV/CAC',(Ls/cs).toFixed(2),ratio.toFixed(2)],['Margin per trial',(Ls*.95-cs>=0?'+':'−')+'$'+Math.abs(Ls*.95-cs).toFixed(1),(mg>=0?'+':'−')+'$'+Math.abs(mg).toFixed(1)],['First payers still paying at month 12',(curve(.38,.75)[11]/.38*100).toFixed(1)+'%',(curve(p.c1,p.tail)[11]/p.c1*100).toFixed(1)+'%']];
+  document.getElementById('unit').innerHTML=rowsU.map(r=>'<tr><td>'+r[0]+'</td><td>'+r[1]+'</td><td>'+r[2]+'</td></tr>').join('');
+  drawChart(cash);
+}
+function drawChart(cash){
+  const W=400,H=230,pl=30,pr=44,pt=12,pb=26;
+  const mn=Math.min(-4e6,...cash), mx=Math.max(0.5e6,...cash);
+  const x=i=>pl+i*(W-pl-pr)/8, y=v=>pt+(mx-v)*(H-pt-pb)/(mx-mn);
+  let s='<svg viewBox="0 0 '+W+' '+H+'" width="100%" role="img" aria-label="Cumulative cash by quarter">';
+  const step=1e6; for(let t=Math.ceil(mn/step)*step;t<=mx;t+=step){s+='<line x1="'+pl+'" x2="'+(W-pr)+'" y1="'+y(t)+'" y2="'+y(t)+'" stroke="var(--line)" stroke-width="'+(t===0?1.5:0.75)+'"/><text x="'+(pl-6)+'" y="'+(y(t)+4)+'" text-anchor="end">'+(t/1e6).toFixed(0)+'</text>';}
+  ['0','Q1','Q2','Q3','Q4','Q5','Q6','Q7','Q8'].forEach((l,i)=>{s+='<text x="'+x(i)+'" y="'+(H-8)+'" text-anchor="middle">'+l+'</text>';});
+  s+='<polyline fill="none" stroke="var(--accent)" stroke-width="2.5" points="'+cash.map((v,i)=>x(i)+','+y(v)).join(' ')+'"/>';
+  cash.forEach((v,i)=>{s+='<circle cx="'+x(i)+'" cy="'+y(v)+'" r="'+(i===8?5:3)+'" fill="var(--accent)"/>';});
+  s+='<text x="'+(x(8)+8)+'" y="'+(y(cash[8])+4)+'" style="fill:var(--fg);font-weight:900;font-size:12px">'+(cash[8]>=0?'+':'−')+Math.abs(cash[8]/1e6).toFixed(1)+'</text>';
+  document.getElementById('chart').innerHTML=s+'</svg>';
+}
+ids.forEach(i=>el[i].addEventListener('input',()=>{document.querySelectorAll('.presets button').forEach(b=>b.setAttribute('aria-pressed','false'));calc();}));
+['scale','t1'].forEach(i=>el[i].addEventListener('change',()=>{document.querySelectorAll('.presets button').forEach(b=>b.setAttribute('aria-pressed','false'));calc();}));
+document.querySelectorAll('.presets button').forEach(b=>b.addEventListener('click',()=>setPreset(b.dataset.p)));
+window.__wittio={run,ltv,SQ,PRE};
+setPreset('base');
+})();
+</script>
+</body></html>
